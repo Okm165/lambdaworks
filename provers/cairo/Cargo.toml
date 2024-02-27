@@ -6,12 +6,12 @@ edition.workspace = true
 license.workspace = true
 
 [[bin]]
-name = "platinum-prover"
+name = "cairo-platinum-prover"
 path = "src/main.rs"
 required-features = ["cli"]
 
 [lib]
-name = "platinum_prover"
+name = "cairo_platinum_prover"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]

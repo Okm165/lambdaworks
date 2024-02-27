@@ -1,0 +1,1 @@
+cargo run --release --features=cli,instruments,parallel run-and-prove cairo_programs/compiled/program_compiled.json program_proof.proof

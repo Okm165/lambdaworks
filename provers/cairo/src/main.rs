@@ -1,10 +1,8 @@
+use cairo_platinum_prover::layouts::plain::air::{generate_cairo_proof, verify_cairo_proof, CairoAIR, PublicInputs};
+use cairo_platinum_prover::cairo_layout::CairoLayout;
+use cairo_platinum_prover::runner::run::generate_prover_args;
+use cairo_platinum_prover::runner::run::generate_prover_args_from_trace;
 use lambdaworks_math::field::fields::fft_friendly::stark_252_prime_field::Stark252PrimeField;
-use platinum_prover::cairo_layout::CairoLayout;
-use platinum_prover::layouts::plain::air::{
-    generate_cairo_proof, verify_cairo_proof, PublicInputs,
-};
-use platinum_prover::runner::run::generate_prover_args;
-use platinum_prover::runner::run::generate_prover_args_from_trace;
 use stark_platinum_prover::proof::options::{ProofOptions, SecurityLevel};
 use stark_platinum_prover::proof::stark::StarkProof;
 mod commands;
@@ -15,6 +13,8 @@ use std::fs::File;
 use std::io::{Error, ErrorKind};
 use std::process::{Command, Stdio};
 use std::time::Instant;
+
+use stark_platinum_prover::proof::stark::StoneCompatibleSerializer;
 
 /// Get current directory and return it as a String
 fn get_root_dir() -> Result<String, Error> {
@@ -254,7 +254,14 @@ fn main() {
                 return;
             };
 
-            write_proof(proof, pub_inputs, args.proof_path);
+            let bytes = StoneCompatibleSerializer::serialize_proof::<CairoAIR>(&proof, &pub_inputs, &proof_options);
+
+            let Ok(()) = std::fs::write(&args.proof_path, bytes) else {
+                eprintln!("Error writing proof to file: {}", &args.proof_path);
+                return;
+            };
+
+            // write_proof(proof, pub_inputs, args.proof_path);
         }
         commands::ProverEntity::Prove(args) => {
             let Some((proof, pub_inputs)) = generate_proof_from_trace(
@@ -265,7 +272,14 @@ fn main() {
                 return;
             };
 
-            write_proof(proof, pub_inputs, args.proof_path);
+            let bytes = StoneCompatibleSerializer::serialize_proof::<CairoAIR>(&proof, &pub_inputs, &proof_options);
+
+            let Ok(()) = std::fs::write(&args.proof_path, bytes) else {
+                eprintln!("Error writing proof to file: {}", &args.proof_path);
+                return;
+            };
+
+            // write_proof(proof, pub_inputs, args.proof_path);
         }
         commands::ProverEntity::Verify(args) => {
             let Ok(program_content) = std::fs::read(&args.proof_path) else {
