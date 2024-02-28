@@ -243,6 +243,8 @@ pub trait IsStarkProver<A: AIR> {
         // >>>> Send commitment.
         transcript.append_bytes(&lde_trace_merkle_root);
 
+        println!("{:#?}", hex::encode(lde_trace_merkle_root));
+
         (
             trace_polys,
             lde_trace_evaluations,
