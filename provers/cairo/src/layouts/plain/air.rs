@@ -406,7 +406,7 @@ impl AIR for CairoAIR {
         let transition_constraints: Vec<
             Box<dyn TransitionConstraint<Stark252PrimeField, Stark252PrimeField>>,
         > = vec![
-            Box::new(BitPrefixFlag::new()),
+            // Box::new(BitPrefixFlag::new()),
             // Box::new(ZeroFlagConstraint::new()),
             // Box::new(InstructionUnpacking::new()),
             // Box::new(CpuOperandsMemDstAddr::new()),
@@ -418,7 +418,7 @@ impl AIR for CairoAIR {
             // Box::new(CpuUpdateRegistersPcCondNegative::new()),
             // Box::new(CpuUpdateRegistersUpdatePcTmp0::new()),
             // Box::new(CpuUpdateRegistersUpdatePcTmp1::new()),
-            // Box::new(CpuOperandsOpsMul::new()),
+            Box::new(CpuOperandsOpsMul::new()),
             // Box::new(CpuOperandsRes::new()),
             // Box::new(CpuOpcodesCallPushFp::new()),
             // Box::new(CpuOpcodesCallPushPc::new()),
@@ -522,73 +522,73 @@ impl AIR for CairoAIR {
     ///  * ap_t = ap_f
     ///  * pc_0 = pc_i
     ///  * pc_t = pc_f
-    fn boundary_constraints(&self, rap_challenges: &[Felt252]) -> BoundaryConstraints<Self::Field> {
-        let initial_pc = BoundaryConstraint::new_main(3, 0, self.pub_inputs.pc_init);
-        let initial_ap = BoundaryConstraint::new_main(5, 0, self.pub_inputs.ap_init);
+    fn boundary_constraints(&self, _rap_challenges: &[Felt252]) -> BoundaryConstraints<Self::Field> {
+        // let initial_pc = BoundaryConstraint::new_main(3, 0, self.pub_inputs.pc_init);
+        // let initial_ap = BoundaryConstraint::new_main(5, 0, self.pub_inputs.ap_init);
 
-        let final_pc = BoundaryConstraint::new_main(
-            3,
-            self.trace_length - Self::STEP_SIZE,
-            self.pub_inputs.pc_final,
-        );
-        let final_ap = BoundaryConstraint::new_main(
-            5,
-            self.trace_length - Self::STEP_SIZE,
-            self.pub_inputs.ap_final,
-        );
+        // let final_pc = BoundaryConstraint::new_main(
+        //     3,
+        //     self.trace_length - Self::STEP_SIZE,
+        //     self.pub_inputs.pc_final,
+        // );
+        // let final_ap = BoundaryConstraint::new_main(
+        //     5,
+        //     self.trace_length - Self::STEP_SIZE,
+        //     self.pub_inputs.ap_final,
+        // );
 
-        let z_memory = rap_challenges[1];
-        let alpha_memory = rap_challenges[0];
-        let one: FieldElement<Self::Field> = FieldElement::one();
+        // let z_memory = rap_challenges[1];
+        // let alpha_memory = rap_challenges[0];
+        // let one: FieldElement<Self::Field> = FieldElement::one();
 
-        let mem_cumul_prod_denominator_no_padding = self
-            .pub_inputs
-            .public_memory
-            .iter()
-            .fold(one, |product, (address, value)| {
-                product * (z_memory - (address + alpha_memory * value))
-            });
+        // let mem_cumul_prod_denominator_no_padding = self
+        //     .pub_inputs
+        //     .public_memory
+        //     .iter()
+        //     .fold(one, |product, (address, value)| {
+        //         product * (z_memory - (address + alpha_memory * value))
+        //     });
 
-        const PUB_MEMORY_ADDR_OFFSET: usize = 8;
-        let pad_addr = Felt252::one();
-        let pad_value = self.pub_inputs.public_memory.get(&pad_addr).unwrap();
-        let val = z_memory - (pad_addr + alpha_memory * pad_value);
-        let mem_cumul_prod_denominator_pad = val
-            .pow(self.trace_length / PUB_MEMORY_ADDR_OFFSET - self.pub_inputs.public_memory.len());
-        let mem_cumul_prod_denominator = (mem_cumul_prod_denominator_no_padding
-            * mem_cumul_prod_denominator_pad)
-            .inv()
-            .unwrap();
-        let mem_cumul_prod_final =
-            z_memory.pow(self.trace_length / PUB_MEMORY_ADDR_OFFSET) * mem_cumul_prod_denominator;
+        // const PUB_MEMORY_ADDR_OFFSET: usize = 8;
+        // let pad_addr = Felt252::one();
+        // let pad_value = self.pub_inputs.public_memory.get(&pad_addr).unwrap();
+        // let val = z_memory - (pad_addr + alpha_memory * pad_value);
+        // let mem_cumul_prod_denominator_pad = val
+        //     .pow(self.trace_length / PUB_MEMORY_ADDR_OFFSET - self.pub_inputs.public_memory.len());
+        // let mem_cumul_prod_denominator = (mem_cumul_prod_denominator_no_padding
+        //     * mem_cumul_prod_denominator_pad)
+        //     .inv()
+        //     .unwrap();
+        // let mem_cumul_prod_final =
+        //     z_memory.pow(self.trace_length / PUB_MEMORY_ADDR_OFFSET) * mem_cumul_prod_denominator;
 
-        let mem_cumul_prod_final_constraint =
-            BoundaryConstraint::new_aux(1, self.trace_length - 2, mem_cumul_prod_final);
+        // let mem_cumul_prod_final_constraint =
+        //     BoundaryConstraint::new_aux(1, self.trace_length - 2, mem_cumul_prod_final);
 
-        let rc_cumul_prod_final_constraint =
-            BoundaryConstraint::new_aux(0, self.trace_length - 1, one);
+        // let rc_cumul_prod_final_constraint =
+        //     BoundaryConstraint::new_aux(0, self.trace_length - 1, one);
 
-        let rc_min_constraint = BoundaryConstraint::new_main(
-            2,
-            0,
-            FieldElement::from(self.pub_inputs.range_check_min.unwrap() as u64),
-        );
+        // let rc_min_constraint = BoundaryConstraint::new_main(
+        //     2,
+        //     0,
+        //     FieldElement::from(self.pub_inputs.range_check_min.unwrap() as u64),
+        // );
 
-        let rc_max_constraint = BoundaryConstraint::new_main(
-            2,
-            self.trace_length - 1,
-            FieldElement::from(self.pub_inputs.range_check_max.unwrap() as u64),
-        );
+        // let rc_max_constraint = BoundaryConstraint::new_main(
+        //     2,
+        //     self.trace_length - 1,
+        //     FieldElement::from(self.pub_inputs.range_check_max.unwrap() as u64),
+        // );
 
         let constraints = vec![
-            initial_pc,
-            initial_ap,
-            final_pc,
-            final_ap,
-            mem_cumul_prod_final_constraint,
-            rc_cumul_prod_final_constraint,
-            rc_min_constraint,
-            rc_max_constraint,
+            // initial_pc,
+            // initial_ap,
+            // final_pc,
+            // final_ap,
+            // mem_cumul_prod_final_constraint,
+            // rc_cumul_prod_final_constraint,
+            // rc_min_constraint,
+            // rc_max_constraint,
         ];
 
         BoundaryConstraints::from_constraints(constraints)

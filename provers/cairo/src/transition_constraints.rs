@@ -1274,7 +1274,7 @@ impl TransitionConstraint<Stark252PrimeField, Stark252PrimeField> for CpuOperand
     }
 
     fn constraint_idx(&self) -> usize {
-        12
+        0
     }
 
     fn period(&self) -> usize {
