@@ -15,7 +15,7 @@ use crate::layouts::plain::air::PublicInputs;
 use cairo_vm::without_std::collections::HashMap;
 use itertools::Itertools;
 use lambdaworks_math::{
-    field::fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
+    field::fields::fft_friendly::stark_252_prime_field::Stark252PrimeField, traits::AsBytes,
     unsigned_integer::element::UnsignedInteger,
 };
 use stark_platinum_prover::{fri::FieldElement, trace::TraceTable, Felt252};

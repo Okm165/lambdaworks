@@ -223,6 +223,14 @@ pub trait IsStarkProver<A: AIR> {
         FieldElement<A::FieldExtension>: AsBytes + Send + Sync,
         A::Field: IsSubFieldOf<A::FieldExtension>,
     {
+        // let columns = trace.columns_main();
+        // for col in columns {
+        //     for elem in col {
+        //         println!("{:?}", elem.to_owned().as_bytes());
+        //     }
+        //     println!("");
+        // }
+
         // Interpolate columns of `trace`.
         let trace_polys = trace.compute_trace_polys_main::<A::Field>();
 
@@ -234,6 +242,37 @@ pub trait IsStarkProver<A: AIR> {
         for col in lde_trace_permuted.iter_mut() {
             in_place_bit_reverse_permute(col);
         }
+
+        // for col in lde_trace_permuted.iter_mut() {
+        //     for elem in col.clone() {
+        //         println!("{:?}", elem.as_bytes());
+        //     }
+        //     println!("");
+        // }
+
+        // let lde_trace_evaluations_sq = trace_polys.iter()
+        //     .map(|poly| {
+        //         evaluate_polynomial_on_lde_domain(
+        //             poly,
+        //             domain.blowup_factor,
+        //             domain.interpolation_domain_size,
+        //             &(domain.coset_offset.to_owned()*domain.coset_offset.to_owned()),
+        //         )
+        //     })
+        //     .collect::<Result<Vec<Vec<FieldElement<<A as AIR>::Field>>>, FFTError>>()
+        //     .unwrap();
+            
+        // let mut lde_trace_permuted_sq = lde_trace_evaluations_sq.clone();
+        // for col in lde_trace_permuted_sq.iter_mut() {
+        //     in_place_bit_reverse_permute(col);
+        // }
+    
+        // for col in lde_trace_permuted_sq.iter_mut() {
+        //     for elem in col.clone() {
+        //         println!("{:?}", elem.as_bytes());
+        //     }
+        //     println!("");
+        // }
 
         // Compute commitment.
         let lde_trace_permuted_rows = columns2rows(lde_trace_permuted);
@@ -278,6 +317,14 @@ pub trait IsStarkProver<A: AIR> {
         // E: IsSubFieldOf<A::FieldExtension> + IsFFTField,
         A::Field: IsSubFieldOf<A::FieldExtension> + IsFFTField,
     {
+        // let columns = trace.columns_aux();
+        // for col in columns {
+        //     for elem in col {
+        //         println!("{:?}", elem.to_owned().as_bytes());
+        //     }
+        //     println!("");
+        // }
+
         // Interpolate columns of `trace`.
         let trace_polys = trace.compute_trace_polys_aux::<A::Field>();
 
@@ -289,6 +336,13 @@ pub trait IsStarkProver<A: AIR> {
             in_place_bit_reverse_permute(col);
         }
 
+        // for col in lde_trace_permuted.iter_mut() {
+        //     for elem in col.clone() {
+        //         println!("{:?}", elem.as_bytes());
+        //     }
+        //     println!("");
+        // }
+
         // Compute commitment.
         let lde_trace_permuted_rows = columns2rows(lde_trace_permuted);
         let (lde_trace_merkle_tree, lde_trace_merkle_root) =
@@ -296,6 +350,8 @@ pub trait IsStarkProver<A: AIR> {
 
         // >>>> Send commitment.
         transcript.append_bytes(&lde_trace_merkle_root);
+
+        println!("{:#?}", hex::encode(lde_trace_merkle_root));
 
         (
             trace_polys,
@@ -348,6 +404,9 @@ pub trait IsStarkProver<A: AIR> {
         A::FieldExtension: IsFFTField,
         FieldElement<A::FieldExtension>: AsBytes + Send + Sync,
     {
+
+        // println!("state: {:?}", transcript.state());
+
         let (trace_polys, evaluations, main_merkle_tree, main_merkle_root) =
             // Self::interpolate_and_commit_main::<A::Field>(trace, domain, transcript);
             Self::interpolate_and_commit_main(trace, domain, transcript);
@@ -358,7 +417,12 @@ pub trait IsStarkProver<A: AIR> {
             lde_trace_merkle_root: main_merkle_root,
         };
 
+        // println!("state: {:?}", transcript.state());
+
         let rap_challenges = air.build_rap_challenges(transcript);
+
+        // println!("state: {:?}", transcript.state());
+
         let (aux, aux_evaluations) = if air.has_trace_interaction() {
             air.build_auxiliary_trace(trace, &rap_challenges);
             let (aux_trace_polys, aux_trace_polys_evaluations, aux_merkle_tree, aux_merkle_root) =
@@ -373,6 +437,8 @@ pub trait IsStarkProver<A: AIR> {
         } else {
             (None, Vec::new())
         };
+
+        // STONE COMPATIBLE UP TO THIS POINT
 
         let lde_trace = LDETraceTable::from_columns(
             evaluations,
@@ -433,6 +499,15 @@ pub trait IsStarkProver<A: AIR> {
         FieldElement<A::Field>: AsBytes + Send + Sync,
         FieldElement<A::FieldExtension>: AsBytes + Send + Sync,
     {
+        // for c in round_1_result.lde_trace.main_table.data.iter() {
+        //     println!("lde_trace.main_table: {:?}", c.as_bytes());
+        // }
+        // for c in round_1_result.lde_trace.aux_table.data.iter() {
+        //     println!("lde_trace.aux_table: {:?}", c.as_bytes());
+        // }
+
+        // println!("coset_offset: {:?}", domain.coset_offset.as_bytes());
+
         // Compute the evaluations of the composition polynomial on the LDE domain.
         let evaluator = ConstraintEvaluator::new(air, &round_1_result.rap_challenges);
         let constraint_evaluations = evaluator.evaluate(
@@ -444,12 +519,17 @@ pub trait IsStarkProver<A: AIR> {
             &round_1_result.rap_challenges,
         );
 
+        for c in constraint_evaluations.to_owned().iter() {
+            println!("{:?}", c.as_bytes());
+        }
+
         // Get coefficients of the composition poly H
         let composition_poly =
             Polynomial::interpolate_offset_fft(&constraint_evaluations, &domain.coset_offset)
                 .unwrap();
 
         let number_of_parts = air.composition_poly_degree_bound() / air.trace_length();
+        // println!("{}", number_of_parts);
         let composition_poly_parts = composition_poly.break_in_parts(number_of_parts);
 
         let lde_composition_poly_parts_evaluations: Vec<_> = composition_poly_parts
@@ -939,10 +1019,16 @@ pub trait IsStarkProver<A: AIR> {
 
         let num_transition_constraints = air.context().num_transition_constraints;
 
+        // println!("{:?}", beta.to_owned().as_bytes());
+
         let mut coefficients: Vec<_> =
             core::iter::successors(Some(FieldElement::one()), |x| Some(x * &beta))
-                .take(num_boundary_constraints + num_transition_constraints)
+                .take(30)
                 .collect();
+
+        // for c in coefficients.to_owned().iter() {
+        //     println!("{:?}", c.as_bytes());
+        // }
 
         let transition_coefficients: Vec<_> =
             coefficients.drain(..num_transition_constraints).collect();

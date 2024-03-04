@@ -44,7 +44,7 @@ impl ProofOptions {
                 grinding_factor: 20,
             },
             SecurityLevel::Conjecturable100Bits => ProofOptions {
-                blowup_factor: 1,
+                blowup_factor: 2,
                 fri_number_of_queries: 1,
                 coset_offset,
                 grinding_factor: 10,

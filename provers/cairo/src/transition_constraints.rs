@@ -1,5 +1,5 @@
 use crate::Felt252;
-use lambdaworks_math::field::fields::fft_friendly::stark_252_prime_field::Stark252PrimeField;
+use lambdaworks_math::{field::fields::fft_friendly::stark_252_prime_field::Stark252PrimeField, traits::AsBytes};
 use stark_platinum_prover::{
     constraints::transition::TransitionConstraint, frame::Frame, table::TableView,
 };
@@ -1293,6 +1293,10 @@ impl TransitionConstraint<Stark252PrimeField, Stark252PrimeField> for CpuOperand
         let mul = current_step.get_main_evaluation_element(4, 5);
         let op0 = current_step.get_main_evaluation_element(5, 3);
         let op1 = current_step.get_main_evaluation_element(13, 3);
+
+        // println!("evaluate.mul {:?}", mul.as_bytes());
+        // println!("evaluate.op0 {:?}", op0.as_bytes());
+        // println!("evaluate.op1 {:?}", op1.as_bytes());
 
         transition_evaluations[self.constraint_idx()] = mul - op0 * op1;
     }
