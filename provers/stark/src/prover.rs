@@ -2,6 +2,7 @@ use std::marker::PhantomData;
 #[cfg(feature = "instruments")]
 use std::time::Instant;
 
+use itertools::{chain, Itertools};
 use lambdaworks_math::fft::cpu::bit_reversing::{in_place_bit_reverse_permute, reverse_index};
 use lambdaworks_math::fft::errors::FFTError;
 
@@ -519,9 +520,16 @@ pub trait IsStarkProver<A: AIR> {
             &round_1_result.rap_challenges,
         );
 
-        for c in constraint_evaluations.to_owned().iter() {
-            println!("{:?}", c.as_bytes());
-        }
+        
+
+        let a = constraint_evaluations.iter().cloned().step_by(2);
+        let b = constraint_evaluations.iter().cloned().skip(1).step_by(2);
+
+        let c = chain!(a,b).collect_vec();
+
+        // for c in c.iter() {
+        //     println!("{:?}", c.as_bytes());
+        // }
 
         // Get coefficients of the composition poly H
         let composition_poly =
@@ -545,8 +553,17 @@ pub trait IsStarkProver<A: AIR> {
             })
             .collect();
 
+        for part in lde_composition_poly_parts_evaluations.to_owned() {
+            for v in part {
+                println!("{:?}", v.as_bytes());
+            }
+            println!("");
+        }
+
         let (composition_poly_merkle_tree, composition_poly_root) =
             Self::commit_composition_polynomial(&lde_composition_poly_parts_evaluations);
+
+        println!("{:#?}", hex::encode(composition_poly_root));
 
         Round2 {
             lde_composition_poly_evaluations: lde_composition_poly_parts_evaluations,
